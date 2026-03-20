@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ultimate Cinema UI</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Animated Deep Pink/Purple Background */
+body {
+    background: linear-gradient(-45deg, #f522c0, #3b0c33, #ff0ba62d, #cb1561);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #050914; }
+::-webkit-scrollbar-thumb { background: #122c4a; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #e50914; }
+
+/* Sticky Glassmorphism Header */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    text-align: center;
+    padding: 30px 20px 20px;
+    background: rgba(9, 18, 33, 0.85);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+h1 { 
+    margin-bottom: 15px; 
+    font-size: 2.2rem; 
+    letter-spacing: 1px;
+    text-shadow: 0 0 15px rgba(229, 9, 20, 0.4); 
+}
+
+/* Search Bar */
+.search-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 500px;
+}
+
+.search-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 15px 25px;
+    border-radius: 30px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.2);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.search-btn {
+    padding: 0 30px;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(90deg, #e50914, #b20710);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+}
+
+.search-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(229, 9, 20, 0.5);
+}
+
+/* Interactive Filters */
+.filters {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #ccc;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.filter-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+.filter-btn.active {
+    background: #e50914;
+    color: white;
+    font-weight: bold;
+    border-color: #e50914;
+    box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
+}
+
+/* Autocomplete Suggestions */
+.suggestions {
+    position: absolute;
+    top: 60px; left: 0; width: calc(100% - 110px);
+    background: rgba(175, 34, 152, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    overflow: hidden;
+    z-index: 10;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    display: none;
+    border: 1px solid rgba(175, 34, 152, 0.95);
+}
+
+.suggestion-item {
+    padding: 10px 15px; cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; gap: 12px;
+    transition: 0.2s;
+}
+.suggestion-item:hover { background: rgba(229, 9, 20, 0.2); }
+.suggestion-item img { width: 30px; height: 45px; object-fit: cover; border-radius: 4px; }
+
+/* =========================================
+   🎥 DIRECTORS GRID VIEW
+   ========================================= */
+#directorsView {
+    display: none; 
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 30px;
+    padding: 40px 50px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.director-card-large {
+    background: rgba(12, 32, 59, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.director-card-large:hover {
+    transform: translateY(-10px) scale(1.05);
+    background: rgba(12, 32, 59, 0.9);
+    border-color: #e50914;
+    box-shadow: 0 15px 30px rgba(229, 9, 20, 0.3);
+}
+
+.director-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center top; 
+    margin-bottom: 15px;
+    border: 3px solid rgba(255,255,255,0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    transition: 0.4s;
+    background-color: #050914;
+}
+
+.director-card-large:hover .director-image {
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.8);
+}
+
+.director-card-large h3 { color: white; font-size: 1.2rem; margin-bottom: 5px; }
+.director-card-large p { color: #aaa; font-size: 0.9rem; }
+
+
+/* Grid for Movies */
+.movies {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 30px; padding: 40px 50px 80px; max-width: 1400px; margin: 0 auto;
+}
+
+/* Cards */
+.card {
+    position: relative; overflow: hidden; border-radius: 15px; cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+    background: #0c203b; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); aspect-ratio: 2 / 3;
+}
+.card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+
+@media (hover: hover) {
+    .card:hover { transform: translateY(-10px) scale(1.03); box-shadow: 0 25px 50px rgba(0,0,0,0.8), 0 0 20px rgba(229, 9, 20, 0.2); z-index: 5; }
+    .card:hover img { filter: brightness(0.4) blur(3px); }
+    .card:hover .play-btn { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .card:hover .overlay { transform: translateY(0); opacity: 1; }
+}
+
+.play-btn {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); background: rgba(229, 9, 20, 0.8);
+    width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+    font-size: 24px; color: white; opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 3;
+}
+
+.badge-container { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
+.badge {
+    background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); padding: 6px 10px;
+    border-radius: 20px; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.1);
+}
+.rating { color: #f5c518; }
+.type { color: #e50914; text-transform: capitalize; }
+
+/* Official OTT Brand Colors */
+.ott-netflix { background: rgba(229, 9, 20, 0.2); color: #e50914; border: 1px solid rgba(229, 9, 20, 0.5); }
+.ott-prime { background: rgba(0, 168, 225, 0.2); color: #00A8E1; border: 1px solid rgba(0, 168, 225, 0.5); }
+.ott-hulu { background: rgba(28, 231, 131, 0.2); color: #1ce783; border: 1px solid rgba(28, 231, 131, 0.5); }
+.ott-disney { background: rgba(17, 60, 207, 0.2); color: #4385ff; border: 1px solid rgba(17, 60, 207, 0.5); }
+.ott-max { background: rgba(148, 0, 211, 0.2); color: #c445ff; border: 1px solid rgba(148, 0, 211, 0.5); }
+
+/* Text Overlay */
+.overlay {
+    position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(5, 9, 20, 0.95) 40%, #050914);
+    padding: 40px 15px 15px; transform: translateY(20px); opacity: 0; transition: 0.4s; text-align: center; z-index: 2;
+}
+.overlay h3 { font-size: 1.1rem; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+.overlay p { color: #e50914; font-size: 0.8rem; font-weight: bold; }
+
+/* Skeleton Loading Animation */
+.skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%; animation: skeletonLoading 1.5s infinite; border-radius: 15px; aspect-ratio: 2 / 3; border: 1px solid rgba(255,255,255,0.05);
+}
+@keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Modal */
+.modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+    display: none; justify-content: center; align-items: center; z-index: 100;
+}
+.modal-content {
+    background: rgba(12, 32, 59, 0.95); padding: 40px; border-radius: 20px; width: 90%; max-width: 700px;
+    border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.8); position: relative; max-height: 90vh; overflow-y: auto;
+}
+.close {
+    position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 20px; transition: 0.2s; background: rgba(255,255,255,0.1);
+    width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; border-radius: 50%; z-index: 10;
+}
+.close:hover { background: #e50914; color: white; transform: rotate(90deg); }
+.message { grid-column: 1 / -1; text-align: center; color: white; font-size: 1.2rem; padding: 50px; }
+
+@media (max-width: 768px) {
+    .header { padding: 20px 15px; } h1 { font-size: 1.8rem; margin-bottom: 10px; }
+    input { padding: 12px 20px; font-size: 15px; } .search-btn { padding: 0 20px; font-size: 15px; } .suggestions { width: 100%; }
+    
+    #directorsView { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); padding: 20px 15px; gap: 15px; }
+    .director-image { width: 90px; height: 90px; }
+    .director-card-large { padding: 20px 15px; }
+
+    .movies { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 20px 15px 80px; }
+    .overlay { opacity: 1; transform: translateY(0); background: linear-gradient(transparent, rgba(5, 9, 20, 0.95) 10%, #050914); padding: 30px 10px 10px; }
+    .overlay h3 { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .modal-content { padding: 25px 20px; border-radius: 15px; }
+    #modal-flex-container { flex-direction: column !important; align-items: center; text-align: center; gap: 15px !important; }
+    #modal-flex-container img { width: 140px !important; margin: 0 auto; }
+    #modal-flex-container h2 { font-size: 1.6rem !important; }
+    #modal-flex-container > div { min-width: 100% !important; }
+    .modal-badges { justify-content: center !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1> 🎬 MOVIE FINDER  🎬 </h1>
+    <div class="search-container">
+        <div class="search-wrapper">
+            <input type="text" id="search" placeholder="Search movies, series..." autocomplete="off">
+            <button class="search-btn" onclick="executeSearch()">Search</button>
+        </div>
+        <div class="suggestions" id="suggestions"></div>
+        
+        <div class="filters">
+            <button class="filter-btn active" id="btn-all" onclick="setFilter('', this)">All</button>
+            <button class="filter-btn" onclick="setFilter('movie', this)">Movies</button>
+            <button class="filter-btn" onclick="setFilter('series', this)">TV Series</button>
+            <button class="filter-btn" onclick="showDirectorsView(this)">Top 20 Directors</button>
+        </div>
+    </div>
+</div>
+
+<div id="directorsView">
+    </div>
+
+<div class="movies" id="movies">
+    <div class="message"><b>Search for a title to begin your cinematic journey.</b></div>
+</div>
+
+<div class="modal" id="modal">
+    <div class="modal-content" id="modalContent"></div>
+</div>
+
+<script>
+const API_KEY = "c2d32214"; // Your OMDB API Key
+const searchInput = document.getElementById("search");
+const suggestionsBox = document.getElementById("suggestions");
+const moviesDiv = document.getElementById("movies");
+const directorsDiv = document.getElementById("directorsView");
+let currentFilter = ''; 
+
+// --- ✨ TOP 20 DIRECTORS DATABASE WITH LOCAL IMAGES ✨ ---
+const curatedDirectors = [
+    { name: 'Christopher Nolan', img: 'photo_2026-03-20_20-00-04.jpg', bgColor: '0D8ABC', movies: ['Inception', 'Interstellar', 'The Dark Knight', 'Oppenheimer', 'Tenet'] },
+    { name: 'Quentin Tarantino', img:'photo_2026-03-20_20-14-50.jpg', bgColor: 'E50914', movies: ['Pulp Fiction', 'Django Unchained', 'Inglourious Basterds', 'Kill Bill: Vol. 1', 'Reservoir Dogs'] },
+    { name: 'Martin Scorsese', img: 'photo_2026-03-20_19-41-10.jpg', bgColor: 'b829ff', movies: ['Goodfellas', 'The Wolf of Wall Street', 'Taxi Driver', 'The Departed', 'Casino'] },
+    { name: 'Steven Spielberg', img:'photo_2026-03-20_19-41-09.jpg', bgColor: '1ce783', movies: ['Jurassic Park', "Schindler's List", 'Jaws', 'Saving Private Ryan', 'Raiders of the Lost Ark'] },
+    { name: 'David Fincher', img: 'photo_4_2026-03-20_20-02-38.jpg', bgColor: 'ff9900', movies: ['Fight Club', 'Se7en', 'Gone Girl', 'The Social Network', 'Zodiac'] },
+    { name: 'James Cameron', img: 'photo_2026-03-20_20-21-43.jpg', bgColor: '00A8E1', movies: ['Avatar', 'Titanic', 'Terminator 2: Judgment Day', 'Aliens', 'The Terminator'] },
+    { name: 'Stanley Kubrick', img: 'photo_5_2026-03-20_20-02-09.jpg', bgColor: '000000', movies: ['The Shining', '2001: A Space Odyssey', 'A Clockwork Orange', 'Full Metal Jacket', 'Dr. Strangelove'] },
+    { name: 'Ridley Scott', img: 'photo_6_2026-03-20_20-02-09.jpg', bgColor: '3b0c33', movies: ['Alien', 'Blade Runner', 'Gladiator', 'The Martian', 'Black Hawk Down'] },
+    { name: 'Alfred Hitchcock', img: 'photo_7_2026-03-20_20-02-09.jpg', bgColor: '555555', movies: ['Psycho', 'Rear Window', 'Vertigo', 'North by Northwest', 'The Birds'] },
+    { name: 'Denis Villeneuve', img: 'photo_8_2026-03-20_20-02-09.jpg', bgColor: 'c445ff', movies: ['Dune', 'Blade Runner 2049', 'Arrival', 'Sicario', 'Prisoners'] },
+    { name: 'Francis Ford Coppola', img: 'photo_9_2026-03-20_20-02-09.jpg', bgColor: '8a2be2', movies: ['The Godfather', 'Apocalypse Now', 'The Godfather Part II', 'The Conversation', "Bram Stoker's Dracula"] },
+    { name: 'Peter Jackson', img: 'photo_2026-03-20_20-22-50.jpg', bgColor: '228B22', movies: ['The Lord of the Rings: The Return of the King', 'The Lord of the Rings: The Fellowship of the Ring', 'The Lord of the Rings: The Two Towers', 'King Kong', 'The Hobbit: An Unexpected Journey'] },
+    { name: 'Hayao Miyazaki', img: 'photo_10_2026-03-20_20-02-09.jpg', bgColor: 'FF69B4', movies: ['Spirited Away', 'Princess Mononoke', "Howl's Moving Castle", 'My Neighbor Totoro', 'Ponyo'] },
+    { name: 'Bong Joon Ho', img: 'photo_11_2026-03-20_20-02-38.jpg', bgColor: '000000', movies: ['Parasite', 'Snowpiercer', 'Memories of Murder', 'The Host', 'Okja'] },
+    { name: 'Akira Kurosawa', img: 'photo_12_2026-03-20_20-02-38.jpg', bgColor: 'DC143C', movies: ['Seven Samurai', 'Rashomon', 'Yojimbo', 'Ran', 'Ikiru'] },
+    { name: 'Paul Thomas Anderson', img: 'photo_13_2026-03-20_20-02-38.jpg', bgColor: '4682B4', movies: ['There Will Be Blood', 'Boogie Nights', 'Magnolia', 'Phantom Thread', 'The Master'] },
+    { name: 'Wes Anderson', img: 'photo_14_2026-03-20_20-02-39.jpg', bgColor: 'FF8C00', movies: ['The Grand Budapest Hotel', 'Fantastic Mr. Fox', 'Moonrise Kingdom', 'The Royal Tenenbaums', 'Isle of Dogs'] },
+    { name: 'Guillermo del Toro', img: 'photo_15_2026-03-20_20-02-38.jpg', bgColor: '008080', movies: ["Pan's Labyrinth", 'The Shape of Water', 'Hellboy', 'Pacific Rim', 'Crimson Peak'] },
+    { name: 'Clint Eastwood', img: 'photo_16_2026-03-20_20-02-38.jpg  ', bgColor: 'A52A2A', movies: ['Unforgiven', 'Million Dollar Baby', 'Gran Torino', 'Mystic River', 'American Sniper'] },
+    { name: 'Alfonso Cuarón', img: 'photo_17_2026-03-20_20-02-38.jpg', bgColor: '4B0082', movies: ['Gravity', 'Roma', 'Children of Men', 'Harry Potter and the Prisoner of Azkaban', 'Y Tu Mamá También'] }
+];
+
+// Initialize the Director Grid with Images
+function loadDirectorsGrid() {
+    directorsDiv.innerHTML = '';
+    curatedDirectors.forEach(dir => {
+        // Fallback generator in case a link breaks
+        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(dir.name)}&background=${dir.bgColor}&color=fff&size=256&bold=true`;
+        
+        directorsDiv.innerHTML += `
+            <div class="director-card-large" onclick="fetchCuratedDirectorMovies('${dir.name}')">
+                <img src="${dir.img}" class="director-image" alt="${dir.name}" onerror="this.onerror=null; this.src='${fallbackUrl}';">
+                <h3>${dir.name}</h3>
+                <p>Explore Masterpieces</p>
+            </div>
+        `;
+    });
+}
+loadDirectorsGrid(); 
+
+// Switch to the Directors tab
+function showDirectorsView(btnElement) {
+    document.querySelectorAll('.filters .filter-btn').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+    
+    searchInput.value = ''; 
+    moviesDiv.style.display = 'none'; 
+    directorsDiv.style.display = 'grid'; 
+}
+
+// Fetch exactly the movies listed in the director's database
+async function fetchCuratedDirectorMovies(directorName) {
+    directorsDiv.style.display = 'none';
+    moviesDiv.style.display = 'grid';
+    
+    document.querySelectorAll('.filters .filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-all').classList.add('active');
+    
+    searchInput.value = `Director: ${directorName}`;
+    showSkeletons();
+
+    try {
+        const directorObj = curatedDirectors.find(d => d.name === directorName);
+        if (!directorObj) return;
+
+        const detailedMoviesPromises = directorObj.movies.map(async (title) => {
+            const detailRes = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${API_KEY}`);
+            return await detailRes.json();
+        });
+
+        const detailedMovies = await Promise.all(detailedMoviesPromises);
+        const validMovies = detailedMovies.filter(m => m.Response === "True");
+        
+        renderMovieCards(validMovies);
+    } catch (error) {
+        moviesDiv.innerHTML = `<div class="message" style="color:#ff3333;">Error loading director movies.</div>`;
+    }
+}
+
+// --- MAIN SEARCH & API LOGIC ---
+const platforms = [
+    { name: "Netflix", class: "ott-netflix" }, { name: "Prime Video", class: "ott-prime" },
+    { name: "Hulu", class: "ott-hulu" }, { name: "Disney+", class: "ott-disney" }, { name: "Max", class: "ott-max" }
+];
+
+function getRandomOTT() { return platforms[Math.floor(Math.random() * platforms.length)]; }
+
+function setFilter(type, btnElement) {
+    currentFilter = type;
+    document.querySelectorAll('.filters .filter-btn').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+    
+    directorsDiv.style.display = 'none';
+    moviesDiv.style.display = 'grid';
+    
+    if(searchInput.value.trim().length > 0) executeSearch();
+}
+
+let typingTimer;
+searchInput.addEventListener("input", () => {
+    clearTimeout(typingTimer);
+    const query = searchInput.value.trim();
+    if (query.length < 3) { suggestionsBox.style.display = "none"; return; }
+    typingTimer = setTimeout(() => fetchSuggestions(query), 300);
+});
+
+async function fetchSuggestions(query) {
+    try {
+        const filterParam = currentFilter ? `&type=${currentFilter}` : '';
+        const res = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}${filterParam}&apikey=${API_KEY}`);
+        const data = await res.json();
+
+        if (data.Response === "True") {
+            let htmlContent = ""; 
+            data.Search.slice(0, 5).forEach(movie => {
+                const poster = (movie.Poster && movie.Poster !== "N/A") ? movie.Poster : "https://placehold.co/30x45/050914/FFF?text=?";
+                const safeTitle = movie.Title.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                htmlContent += `
+                    <div class="suggestion-item" onclick="selectSuggestion('${safeTitle}')">
+                        <img src="${poster}" onerror="this.onerror=null; this.src='https://placehold.co/30x45/050914/FFF?text=?';">
+                        <span>${movie.Title} (${movie.Year})</span>
+                    </div>
+                `;
+            });
+            suggestionsBox.innerHTML = htmlContent;
+            suggestionsBox.style.display = "block";
+        } else { suggestionsBox.style.display = "none"; }
+    } catch (error) { console.error(error); }
+}
+
+function selectSuggestion(title) {
+    searchInput.value = title;
+    suggestionsBox.style.display = "none";
+    
+    directorsDiv.style.display = 'none';
+    moviesDiv.style.display = 'grid';
+    document.querySelectorAll('.filters .filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-all').classList.add('active');
+
+    executeSearch();
+}
+
+document.addEventListener("click", (e) => {
+    if (!e.target.closest(".search-container")) suggestionsBox.style.display = "none";
+});
+
+function showSkeletons() {
+    moviesDiv.innerHTML = "";
+    for(let i=0; i<10; i++) { moviesDiv.innerHTML += `<div class="skeleton"></div>`; }
+}
+
+function renderMovieCards(detailedMovies) {
+    moviesDiv.innerHTML = ""; 
+    detailedMovies.forEach((movie) => {
+        const poster = (movie.Poster && movie.Poster !== "N/A") ? movie.Poster : "https://placehold.co/300x450/050914/FFF?text=No+Poster";
+        const rating = (movie.imdbRating && movie.imdbRating !== "N/A") ? movie.imdbRating : "NR";
+        const ott = getRandomOTT(); 
+        
+        moviesDiv.innerHTML += `
+            <div class="card" onclick="showDetails('${movie.imdbID}', '${ott.name}', '${ott.class}')">
+                <div class="badge-container">
+                    <div class="badge rating">⭐ ${rating}</div>
+                    <div class="badge ${ott.class}">📺 ${ott.name}</div>
+                </div>
+                <img src="${poster}" alt="${movie.Title}" onerror="this.onerror=null; this.src='https://placehold.co/300x450/050914/FFF?text=No+Image';">
+                <div class="play-btn">▶</div>
+                <div class="overlay">
+                    <h3>${movie.Title}</h3>
+                    <p>${movie.Year}</p>
+                </div>
+            </div>
+        `;
+    });
+}
+
+async function executeSearch() {
+    const query = searchInput.value.trim();
+    if (!query) return;
+    
+    directorsDiv.style.display = 'none';
+    moviesDiv.style.display = 'grid';
+    suggestionsBox.style.display = "none";
+    showSkeletons(); 
+
+    try {
+        const filterParam = currentFilter ? `&type=${currentFilter}` : '';
+        const res = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}${filterParam}&apikey=${API_KEY}`);
+        const data = await res.json();
+
+        if (data.Response === "False") {
+            moviesDiv.innerHTML = `<div class="message">${data.Error}</div>`;
+            return;
+        }
+
+        const detailedMoviesPromises = data.Search.map(async (movie) => {
+            const detailRes = await fetch(`https://www.omdbapi.com/?i=${movie.imdbID}&apikey=${API_KEY}`);
+            return await detailRes.json();
+        });
+
+        const detailedMovies = await Promise.all(detailedMoviesPromises);
+        renderMovieCards(detailedMovies);
+
+    } catch (error) {
+        moviesDiv.innerHTML = `<div class="message" style="color:#ff3333;">Connection error. Please try again.</div>`;
+    }
+}
+
+async function showDetails(id, ottName, ottClass) {
+    try {
+        const res = await fetch(`https://www.omdbapi.com/?i=${id}&apikey=${API_KEY}`);
+        const movie = await res.json();
+
+        const modal = document.getElementById("modal");
+        const content = document.getElementById("modalContent");
+        const poster = (movie.Poster && movie.Poster !== "N/A") ? movie.Poster : "https://placehold.co/300x450/050914/FFF?text=No+Poster";
+
+        const primaryDirector = movie.Director ? movie.Director.split(',')[0].trim() : "";
+        const safeDirector = primaryDirector.replace(/'/g, "\\'");
+
+        content.innerHTML = `
+            <span class="close" onclick="closeModal()">✕</span>
+            <div id="modal-flex-container" style="display:flex; gap:25px; align-items: flex-start;">
+                <img src="${poster}" onerror="this.onerror=null; this.src='https://placehold.co/300x450/050914/FFF?text=No+Poster';" style="width:200px; border-radius:12px; box-shadow:0 10px 20px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);">
+                <div style="flex:1; min-width:250px;">
+                    <h2 style="margin-bottom: 5px; color: white; font-size:2.2rem; line-height:1.2;">${movie.Title}</h2>
+                    <p style="color: #e50914; margin-bottom: 20px; font-weight:bold; letter-spacing:1px;">${movie.Year} • ${movie.Runtime} • ${movie.Genre}</p>
+                    
+                    <div class="modal-badges" style="display: flex; gap: 10px; margin-bottom: 25px; flex-wrap:wrap;">
+                        <span style="background: rgba(245, 197, 24, 0.1); color:#f5c518; padding: 6px 15px; border-radius: 20px; font-weight:bold; border:1px solid rgba(245,197,24,0.3);">⭐ IMDb: ${movie.imdbRating}</span>
+                        <span class="badge ${ottClass}" style="padding: 6px 15px; border-radius: 20px; font-weight: bold;">📺 Streaming on: ${ottName}</span>
+                    </div>
+
+                    <p style="line-height: 1.7; color:#ccc; margin-bottom: 20px; font-size:1.05rem;">${movie.Plot}</p>
+                    
+                    <p style="margin-bottom:8px; color:#888;">
+                        <b style="color:#fff;">Director:</b> 
+                        <span style="color:#e50914; cursor:pointer; text-decoration:underline;" onclick="searchDirectorFallback('${safeDirector}')">${movie.Director}</span>
+                    </p>
+                    <p style="color:#888;"><b style="color:#fff;">Cast:</b> ${movie.Actors}</p>
+                </div>
+            </div>
+        `;
+
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden"; 
+        
+        content.style.opacity = 0;
+        content.style.transform = 'scale(0.95) translateY(20px)';
+        setTimeout(() => {
+            content.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            content.style.opacity = 1;
+            content.style.transform = 'scale(1) translateY(0)';
+        }, 10);
+
+    } catch (error) { console.error(error); }
+}
+
+async function searchDirectorFallback(director) {
+    if(!director || director === "N/A") return;
+    
+    if (curatedDirectors.find(d => d.name === director)) {
+        closeModal();
+        fetchCuratedDirectorMovies(director);
+        return;
+    }
+
+    searchInput.value = director;
+    closeModal();
+    showSkeletons();
+    
+    directorsDiv.style.display = 'none';
+    moviesDiv.style.display = 'grid';
+    document.querySelectorAll('.filters .filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-all').classList.add('active');
+
+    try {
+        const res = await fetch(`https://www.omdbapi.com/?s=${encodeURIComponent(director)}&apikey=${API_KEY}`);
+        const data = await res.json();
+
+        if (data.Response === "False") {
+            moviesDiv.innerHTML = `<div class="message">The OMDB API could not find results for director: ${director}. Try searching by a movie title!</div>`;
+            return;
+        }
+
+        const detailedMoviesPromises = data.Search.map(async (movie) => {
+            const detailRes = await fetch(`https://www.omdbapi.com/?i=${movie.imdbID}&apikey=${API_KEY}`);
+            return await detailRes.json();
+        });
+
+        const detailedMovies = await Promise.all(detailedMoviesPromises);
+        const filteredMovies = detailedMovies.filter((movie) => movie.Director && movie.Director.includes(director));
+
+        if (filteredMovies.length > 0) {
+            renderMovieCards(filteredMovies);
+        } else {
+            moviesDiv.innerHTML = `<div class="message">The OMDB API couldn't isolate movies specifically directed by ${director} in these results.</div>`;
+        }
+    } catch (error) {
+        moviesDiv.innerHTML = `<div class="message" style="color:#ff3333;">Error loading director movies.</div>`;
+    }
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+    document.body.style.overflow = "auto"; 
+}
+
+window.onclick = function(event) {
+    const mainModal = document.getElementById("modal");
+    if (event.target == mainModal) closeModal();
+}
+
+searchInput.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") executeSearch();
+});
+</script>
+
+</body>
+</html>
